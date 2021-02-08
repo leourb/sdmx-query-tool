@@ -21,6 +21,7 @@ class ECB:
         self.__datashelf = DataShelf().ecb()
         self.__dsd = self.__refresh_dsd_list()
         self.__data = self.__retrieve_data
+        self.__dsd_cl = self.__get_code_list_for_dsd
 
     def __refresh_dsd_list(self):
         """
@@ -28,18 +29,27 @@ class ECB:
         :return: a DataFrame with the list of DSDs
         :rtype: pd.DataFrame
         """
-        url = f"{self.__datashelf['endpoint']['protocol']}{self.__datashelf['endpoint']['wsEntryPoint']}" \
-              f"{self.__datashelf['endpoint']['datastructure']}ECB?references=dataflow"
-        data = requests.get(url)
-        tree = eT.parse(BytesIO(data.content))
-        dsd = dict()
-        for elem in tree.findall(".//{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Dataflow"):
-            if elem.attrib["agencyID"] == "ECB":
-                dsd[elem.attrib["id"]] = None
-                for elem1 in elem:
-                    if elem1.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common}Name":
-                        dsd[elem.attrib["id"]] = elem1.text
-        return pd.DataFrame(data=list(dsd.values()), index=list(dsd.keys()), columns=["DSDs"])
+        data_flows_url = f"{self.__datashelf['endpoint']['protocol']}{self.__datashelf['endpoint']['wsEntryPoint']}" \
+                         f"{self.__datashelf['endpoint']['dataflow']}ECB"
+        data_flows_file = requests.get(data_flows_url).content
+        output = list()
+        for _, element in eT.iterparse(BytesIO(data_flows_file)):
+            if element.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Dataflows":
+                for dsd in element:
+                    if dsd.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Dataflow":
+                        dataflow_id = dsd.attrib["id"]
+                        dataflow_name = None
+                        data_structure_id = None
+                        for dsd_name in dsd:
+                            if dsd_name.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common}Name":
+                                dataflow_name = dsd_name.text
+                                continue
+                            if dsd_name.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Structure":
+                                for ref in dsd_name:
+                                    data_structure_id = ref.attrib["id"]
+                        output.append([dataflow_id, dataflow_name, data_structure_id])
+        return pd.DataFrame(data=output, columns=["DataFlow", "DataFlowName", "DataStructureCode"]).\
+            set_index("DataFlow")
 
     def __retrieve_data(self, dsd, **kwargs):
         """
@@ -58,9 +68,9 @@ class ECB:
             raise ValueError(f"The value needs to be included in the list of available DSDs: {list(self.__dsd.index)}")
         url = f"{self.__datashelf['endpoint']['protocol']}{self.__datashelf['endpoint']['wsEntryPoint']}" \
               f"{self.__datashelf['endpoint']['resource']}{dsd}?{formatted_inputs}"
-        downloaded_data = requests.get(url)
+        downloaded_data = requests.get(url).content
         results = pd.DataFrame()
-        for _, dataset in eT.iterparse(BytesIO(downloaded_data.content)):
+        for _, dataset in eT.iterparse(BytesIO(downloaded_data)):
             if dataset.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message}DataSet":
                 results = results.append(self.__extract_data_from_tags(dataset))
         results.set_index("seriesId", inplace=True)
@@ -151,10 +161,11 @@ class ECB:
         :return: a DataFrame with the whole ECB code-list
         :rtype: pd.DataFrame
         """
-        code_list = "https://sdw-wsrest.ecb.europa.eu/service/codelist/ECB"
-        downloaded_cl = requests.get(code_list)
+        code_list = f"{ECB().__datashelf['endpoint']['protocol']}{ECB().__datashelf['endpoint']['wsEntryPoint']}" \
+                    f"{ECB().__datashelf['endpoint']['codelist']}ECB"
+        downloaded_cl = requests.get(code_list).content
         code_list_df = pd.DataFrame()
-        for _, element in eT.iterparse(BytesIO(downloaded_cl.content)):
+        for _, element in eT.iterparse(BytesIO(downloaded_cl)):
             if element.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Codelist":
                 output_cl = list()
                 agency_id = element.attrib["agencyID"]
@@ -179,6 +190,42 @@ class ECB:
         code_list_df.set_index("CodeListName", inplace=True)
         return code_list_df
 
+    def __get_code_list_for_dsd(self, data_flow):
+        """
+        Return the code-list for a given data structure maintained by ECB
+        :param str data_flow: data flow code to pull up the code list
+        :return: a DataFrame with the code list of a given data structure
+        :rtype: pd.DataFrame
+        """
+        if data_flow not in list(self.__dsd.index):
+            raise ValueError(f"Data Flow not found in list. Please select one among: {list(self.__dsd['DataFlow'])}")
+        data_structure = self.__dsd.loc[data_flow]["DataStructureCode"]
+        code_list_url = f"{self.__datashelf['endpoint']['protocol']}{self.__datashelf['endpoint']['wsEntryPoint']}" \
+                        f"{self.__datashelf['endpoint']['datastructure']}ECB/{data_structure}?references=children"
+        code_list_file = requests.get(code_list_url).content
+        output = list()
+        for _, element in eT.iterparse(BytesIO(code_list_file)):
+            if element.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Codelists":
+                for cl in element:
+                    if cl.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Codelist":
+                        code_list_id = cl.attrib["id"]
+                        code_list_name = None
+                        code_list_code_id = None
+                        code_list_code_name = None
+                        for sub_cl in cl:
+                            if sub_cl.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common}Name":
+                                code_list_name = sub_cl.text
+                                continue
+                            if sub_cl.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Code":
+                                code_list_code_id = sub_cl.attrib["id"]
+                                for sub_cl_name in sub_cl:
+                                    code_list_code_name = sub_cl_name.text
+                            output.append([code_list_id, code_list_name, code_list_code_id, code_list_code_name])
+        code_list_df = pd.DataFrame(data=output,
+                                    columns=["CodeListID", "CodeListName", "CodeListCodeID", "CodeListCodeName"]).\
+            set_index("CodeListID")
+        return code_list_df
+
     def show_dsd(self):
         """
         Show the list of available DSD in the ECB SDMX database
@@ -194,3 +241,11 @@ class ECB:
         :rtype: function
         """
         return self.__data
+
+    def get_code_list_for_data_flow(self):
+        """
+        Get the code list for a given data flow
+        :return: a DataFrame with the code list
+        :rtype: function
+        """
+        return self.__dsd_cl

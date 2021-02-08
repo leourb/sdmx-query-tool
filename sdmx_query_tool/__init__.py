@@ -1,1 +1,1 @@
-from .sdmx_query_tool import SDMXQueryTool
+from .source_lib import SDMXQueryTool

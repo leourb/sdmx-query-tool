@@ -1,10 +1,21 @@
 """Module to query data through SDMX sources"""
 
 ECB = {
-    "protocol": "https://",
-    "wsEntryPoint": "sdw-wsrest.ecb.europa.eu/service/",
-    "resource": "data/",
-    "datastructure": "datastructure/"
+    "endpoint": {
+        "protocol": "https://",
+        "wsEntryPoint": "sdw-wsrest.ecb.europa.eu/service/",
+        "resource": "data/",
+        "datastructure": "datastructure/"
+    },
+    "inputs": {
+        "start_period": "startPeriod={}",
+        "end_period": "end_period={}",
+        "last_n_observations": "lastNObservations={}",
+        "first_n_observations": "firstNObservations={}",
+        "detail": "detail={}",
+        "updated_after": "updatedAfter={}",
+        "include_history": "includeHistory={}"
+    }
 }
 
 

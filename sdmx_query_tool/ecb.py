@@ -144,6 +144,41 @@ class ECB:
             date = "-".join([year, date_tail, str(last_day)])
             return parse(date)
 
+    @staticmethod
+    def get_ecb_code_list():
+        """
+        Retrieve the whole code-list for all the DSDs maintained by the ECB
+        :return: a DataFrame with the whole ECB code-list
+        :rtype: pd.DataFrame
+        """
+        code_list = "https://sdw-wsrest.ecb.europa.eu/service/codelist/ECB"
+        downloaded_cl = requests.get(code_list)
+        code_list_df = pd.DataFrame()
+        for _, element in eT.iterparse(BytesIO(downloaded_cl.content)):
+            if element.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Codelist":
+                output_cl = list()
+                agency_id = element.attrib["agencyID"]
+                cl_parent_id = element.attrib["id"]
+                parent_cl_name = None
+                cl_id = None
+                cl_name = None
+                for parent_name in list(element):
+                    if parent_name.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common}Name":
+                        parent_cl_name = parent_name.text
+                        continue
+                    if parent_name.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Code":
+                        cl_id = parent_name.attrib["id"]
+                        for sub_name in parent_name:
+                            cl_name = sub_name.text
+                    output_cl.append([agency_id, cl_parent_id, parent_cl_name, cl_id, cl_name])
+                code_list_df = code_list_df.append(pd.DataFrame(data=output_cl,
+                                                                columns=["AgencyID", "CodeListName",
+                                                                         "CodeListDescription", "Code",
+                                                                         "CodeDescription"])
+                                                   )
+        code_list_df.set_index("CodeListName", inplace=True)
+        return code_list_df
+
     def show_dsd(self):
         """
         Show the list of available DSD in the ECB SDMX database

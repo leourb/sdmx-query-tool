@@ -5,7 +5,9 @@ ECB = {
         "protocol": "https://",
         "wsEntryPoint": "sdw-wsrest.ecb.europa.eu/service/",
         "resource": "data/",
-        "datastructure": "datastructure/"
+        "datastructure": "datastructure/",
+        "dataflow": "dataflow/",
+        "codelist": "codelist/"
     },
     "inputs": {
         "start_period": "startPeriod={}",

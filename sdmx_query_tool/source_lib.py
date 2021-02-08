@@ -18,7 +18,7 @@ class SDMXQueryTool:
         :rtype: dict
         """
         sources = {
-            "ECB": "Inputs are: DSD, updatedAfter, lastNObservations, startPeriod, endPeriod"
+            "ECB": "Help page: https://sdw-wsrest.ecb.europa.eu/help/"
         }
         return sources
 

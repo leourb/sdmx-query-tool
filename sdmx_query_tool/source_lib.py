@@ -1,6 +1,7 @@
 """Wrapper module to call all sub modules"""
 
-from sdmx_query_tool.sources.ecb import ECB
+from .sources.ecb import ECB
+from .sources.imf import IMF
 
 
 class SDMXQueryTool:
@@ -9,6 +10,7 @@ class SDMXQueryTool:
     def __init__(self):
         """Initialize the function with the given inputs"""
         self.__ecb = ECB()
+        self.__imf = IMF()
 
     @staticmethod
     def get_help():
@@ -30,3 +32,10 @@ class SDMXQueryTool:
         """
         return self.__ecb
 
+    def imf(self):
+        """
+        Return the IMF class publicly
+        :return: the IMF class publicly
+        :rtype: IMF
+        """
+        return self.__imf

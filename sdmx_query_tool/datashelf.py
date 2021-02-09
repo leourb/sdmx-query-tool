@@ -11,7 +11,7 @@ ECB = {
     },
     "inputs": {
         "start_period": "startPeriod={}",
-        "end_period": "end_period={}",
+        "end_period": "endPeriod={}",
         "last_n_observations": "lastNObservations={}",
         "first_n_observations": "firstNObservations={}",
         "detail": "detail={}",
@@ -24,6 +24,16 @@ IMF = {
     "data_flow_list": "https://registry.sdmx.org/ws/public/sdmxapi/rest/dataflow/"
 }
 
+OECD = {
+    "data_flow_list": "https://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL",
+    "data": "http://stats.oecd.org/restsdmx/sdmx.ashx/GetData/",
+    "inputs": {
+        "start_period": "startPeriod={}",
+        "end_period": "endPeriod={}"
+    },
+    "code_list": "http://stats.oecd.org/restsdmx/sdmx.ashx/GetSchema/"
+}
+
 
 class DataShelf:
     """Container for static data"""
@@ -32,6 +42,7 @@ class DataShelf:
         """Initialize the class"""
         self.__ecb = ECB
         self.__imf = IMF
+        self.__oecd = OECD
 
     def ecb(self):
         """
@@ -48,3 +59,11 @@ class DataShelf:
         :rtype: dict
         """
         return self.__imf
+
+    def oecd(self):
+        """
+        Return the OECD dictionary publicly
+        :return: a dictionary with the OECD configuration
+        :rtype: dict
+        """
+        return self.__oecd

@@ -18,10 +18,10 @@ class ECB:
 
     def __init__(self):
         """Initialize the class"""
-        self.__data_shelf = DataShelf().ecb()
+        self.__data_shelf = DataShelf().oecd()
         self.__data_flows = self.__refresh_data_flow_list()
         self.__data = self.__retrieve_data
-        self.__dsd_cl = self.__get_code_list_for_dsd
+        self.__data_flow_cl = self.__get_code_list_for_data_flow
 
     def __refresh_data_flow_list(self):
         """
@@ -51,10 +51,10 @@ class ECB:
         return pd.DataFrame(data=output, columns=["DataFlow", "DataFlowName", "DataStructureCode"]).\
             set_index("DataFlow")
 
-    def __retrieve_data(self, dsd, **kwargs):
+    def __retrieve_data(self, data_flow, **kwargs):
         """
         Retrieve the data given a combination of inputs
-        :param str dsd: name of the dsd to get the data for
+        :param str data_flow: name of the dsd to get the data for
         :param dict kwargs: accepted arguments are: start_period, end_period, last_n_observations, first_n_observations,
         updated_after, detail, include_history. For more details on how to use these arguments visit:
         https://sdw-wsrest.ecb.europa.eu/help/
@@ -63,12 +63,12 @@ class ECB:
         """
         validated_inputs = [i for i in list(kwargs.keys()) if self.__data_shelf['inputs'].get(i)]
         formatted_inputs = "&".join([self.__data_shelf['inputs'].get(i).format(kwargs[i]) for i in validated_inputs])
-        validated_dsd = True if dsd.upper() in list(self.__data_flows.index) else False
-        if not validated_dsd:
+        validated_data_flow = True if data_flow.upper() in list(self.__data_flows.index) else False
+        if not validated_data_flow:
             raise ValueError(f"The value needs to be included in the list of available Data Flows: "
                              f"{list(self.__data_flows.index)}")
         url = f"{self.__data_shelf['endpoint']['protocol']}{self.__data_shelf['endpoint']['wsEntryPoint']}" \
-              f"{self.__data_shelf['endpoint']['resource']}{dsd}?{formatted_inputs}"
+              f"{self.__data_shelf['endpoint']['resource']}{data_flow}?{formatted_inputs}"
         downloaded_data = requests.get(url).content
         results = pd.DataFrame()
         for _, dataset in eT.iterparse(BytesIO(downloaded_data)):
@@ -191,9 +191,9 @@ class ECB:
         code_list_df.set_index("CodeListName", inplace=True)
         return code_list_df
 
-    def __get_code_list_for_dsd(self, data_flow):
+    def __get_code_list_for_data_flow(self, data_flow):
         """
-        Return the code-list for a given data structure maintained by ECB
+        Return the code-list for a given data flow maintained by the ECB
         :param str data_flow: data flow code to pull up the code list
         :return: a DataFrame with the code list of a given data structure
         :rtype: pd.DataFrame
@@ -250,4 +250,4 @@ class ECB:
         :return: a DataFrame with the code list
         :rtype: function
         """
-        return self.__dsd_cl
+        return self.__data_flow_cl

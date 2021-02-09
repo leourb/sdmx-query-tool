@@ -10,7 +10,7 @@ from io import BytesIO
 
 import pandas as pd
 
-from .datashelf import DataShelf
+from ..datashelf import DataShelf
 
 
 class ECB:
@@ -18,19 +18,19 @@ class ECB:
 
     def __init__(self):
         """Initialize the class"""
-        self.__datashelf = DataShelf().ecb()
-        self.__dsd = self.__refresh_dsd_list()
+        self.__data_shelf = DataShelf().ecb()
+        self.__data_flows = self.__refresh_data_flow_list()
         self.__data = self.__retrieve_data
         self.__dsd_cl = self.__get_code_list_for_dsd
 
-    def __refresh_dsd_list(self):
+    def __refresh_data_flow_list(self):
         """
-        Show the list of DSDs maintained by the ECB
+        Show the list of data flows maintained by the ECB
         :return: a DataFrame with the list of DSDs
         :rtype: pd.DataFrame
         """
-        data_flows_url = f"{self.__datashelf['endpoint']['protocol']}{self.__datashelf['endpoint']['wsEntryPoint']}" \
-                         f"{self.__datashelf['endpoint']['dataflow']}ECB"
+        data_flows_url = f"{self.__data_shelf['endpoint']['protocol']}{self.__data_shelf['endpoint']['wsEntryPoint']}" \
+                         f"{self.__data_shelf['endpoint']['dataflow']}ECB"
         data_flows_file = requests.get(data_flows_url).content
         output = list()
         for _, element in eT.iterparse(BytesIO(data_flows_file)):
@@ -61,13 +61,14 @@ class ECB:
         :return: a DataFrame with the query result, if valid
         :rtype: pd.DataFrame
         """
-        validated_inputs = [i for i in list(kwargs.keys()) if self.__datashelf['inputs'].get(i)]
-        formatted_inputs = "&".join([self.__datashelf['inputs'].get(i).format(kwargs[i]) for i in validated_inputs])
-        validated_dsd = True if dsd.upper() in list(self.__dsd.index) else False
+        validated_inputs = [i for i in list(kwargs.keys()) if self.__data_shelf['inputs'].get(i)]
+        formatted_inputs = "&".join([self.__data_shelf['inputs'].get(i).format(kwargs[i]) for i in validated_inputs])
+        validated_dsd = True if dsd.upper() in list(self.__data_flows.index) else False
         if not validated_dsd:
-            raise ValueError(f"The value needs to be included in the list of available DSDs: {list(self.__dsd.index)}")
-        url = f"{self.__datashelf['endpoint']['protocol']}{self.__datashelf['endpoint']['wsEntryPoint']}" \
-              f"{self.__datashelf['endpoint']['resource']}{dsd}?{formatted_inputs}"
+            raise ValueError(f"The value needs to be included in the list of available Data Flows: "
+                             f"{list(self.__data_flows.index)}")
+        url = f"{self.__data_shelf['endpoint']['protocol']}{self.__data_shelf['endpoint']['wsEntryPoint']}" \
+              f"{self.__data_shelf['endpoint']['resource']}{dsd}?{formatted_inputs}"
         downloaded_data = requests.get(url).content
         results = pd.DataFrame()
         for _, dataset in eT.iterparse(BytesIO(downloaded_data)):
@@ -161,8 +162,8 @@ class ECB:
         :return: a DataFrame with the whole ECB code-list
         :rtype: pd.DataFrame
         """
-        code_list = f"{ECB().__datashelf['endpoint']['protocol']}{ECB().__datashelf['endpoint']['wsEntryPoint']}" \
-                    f"{ECB().__datashelf['endpoint']['codelist']}ECB"
+        code_list = f"{ECB().__data_shelf['endpoint']['protocol']}{ECB().__data_shelf['endpoint']['wsEntryPoint']}" \
+                    f"{ECB().__data_shelf['endpoint']['codelist']}ECB"
         downloaded_cl = requests.get(code_list).content
         code_list_df = pd.DataFrame()
         for _, element in eT.iterparse(BytesIO(downloaded_cl)):
@@ -197,11 +198,12 @@ class ECB:
         :return: a DataFrame with the code list of a given data structure
         :rtype: pd.DataFrame
         """
-        if data_flow not in list(self.__dsd.index):
-            raise ValueError(f"Data Flow not found in list. Please select one among: {list(self.__dsd['DataFlow'])}")
-        data_structure = self.__dsd.loc[data_flow]["DataStructureCode"]
-        code_list_url = f"{self.__datashelf['endpoint']['protocol']}{self.__datashelf['endpoint']['wsEntryPoint']}" \
-                        f"{self.__datashelf['endpoint']['datastructure']}ECB/{data_structure}?references=children"
+        if data_flow not in list(self.__data_flows.index):
+            raise ValueError(f"Data Flow not found in list. "
+                             f"Please select one among: {list(self.__data_flows['DataFlow'])}")
+        data_structure = self.__data_flows.loc[data_flow]["DataStructureCode"]
+        code_list_url = f"{self.__data_shelf['endpoint']['protocol']}{self.__data_shelf['endpoint']['wsEntryPoint']}" \
+                        f"{self.__data_shelf['endpoint']['datastructure']}ECB/{data_structure}?references=children"
         code_list_file = requests.get(code_list_url).content
         output = list()
         for _, element in eT.iterparse(BytesIO(code_list_file)):
@@ -226,13 +228,13 @@ class ECB:
             set_index("CodeListID")
         return code_list_df
 
-    def show_dsd(self):
+    def show_data_flow_list(self):
         """
-        Show the list of available DSD in the ECB SDMX database
+        Show the list of available data flows in the ECB SDMX database
         :return: a DataFrame with the list of available DSD
         :rtype: pd.DataFrame
         """
-        return self.__dsd
+        return self.__data_flows
 
     def retrieve_data(self):
         """

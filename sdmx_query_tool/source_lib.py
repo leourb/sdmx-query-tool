@@ -1,6 +1,6 @@
 """Wrapper module to call all sub modules"""
 
-from .ecb import ECB
+from sdmx_query_tool.sources.ecb import ECB
 
 
 class SDMXQueryTool:

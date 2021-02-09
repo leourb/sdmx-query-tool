@@ -21,7 +21,7 @@ ECB = {
 }
 
 IMF = {
-    "dsd_list": "https://registry.sdmx.org/ws/public/sdmxapi/rest/dataflow/"
+    "data_flow_list": "https://registry.sdmx.org/ws/public/sdmxapi/rest/dataflow/"
 }
 
 

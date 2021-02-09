@@ -22,6 +22,7 @@ class IMF:
         """
         Refresh the list of the data flows
         :return: a DataFrame with the list of the available data flows
+        :rtype: pd.DataFrame
         """
         url = self.__data_shelf['data_flow_list']
         imf_data_flows = requests.get(url).content
@@ -38,8 +39,6 @@ class IMF:
                                 data_flow_name = detailed_info.text
                                 continue
                         output.append([agency_id, data_flow_id, data_flow_name])
-        print(Warning(f"Data may be truncated. Please visit {'https://sdmxcentral.imf.org/data/overview.html'} for a "
-                      f"full list of Data Flows available to be queried."))
         results = pd.DataFrame(data=output, columns=["AgencyID", "DataFlowID", "DataFlowName"]).set_index("AgencyID")
         return results
 

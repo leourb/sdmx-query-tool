@@ -27,7 +27,7 @@ class SDMXQueryTool:
             "ECB": "Help page: https://sdw-wsrest.ecb.europa.eu/help/",
             "IMF": "Help page: https://sdmxcentral.imf.org/overview.html#",
             "OECD": "Help page: https://data.oecd.org/api/sdmx-ml-documentation/",
-            "INSEE": "https://www.insee.fr/en/information/2868055"
+            "INSEE": "Help page: https://www.insee.fr/en/information/2868055"
         }
         return sources
 

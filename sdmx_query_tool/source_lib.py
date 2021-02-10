@@ -3,6 +3,7 @@
 from .sources.ecb import ECB
 from .sources.imf import IMF
 from .sources.oecd import OECD
+from .sources.insee import INSEE
 
 
 class SDMXQueryTool:
@@ -13,6 +14,7 @@ class SDMXQueryTool:
         self.__ecb = ECB()
         self.__imf = IMF()
         self.__oecd = OECD()
+        self.__insee = INSEE()
 
     @staticmethod
     def get_help():
@@ -24,7 +26,8 @@ class SDMXQueryTool:
         sources = {
             "ECB": "Help page: https://sdw-wsrest.ecb.europa.eu/help/",
             "IMF": "Help page: https://sdmxcentral.imf.org/overview.html#",
-            "OECD": "Help page: https://data.oecd.org/api/sdmx-ml-documentation/"
+            "OECD": "Help page: https://data.oecd.org/api/sdmx-ml-documentation/",
+            "INSEE": "https://www.insee.fr/en/information/2868055"
         }
         return sources
 
@@ -51,3 +54,11 @@ class SDMXQueryTool:
         :rtype: IMF
         """
         return self.__oecd
+
+    def insee(self):
+        """
+        Return the INSEE class publicly
+        :return: the INSEE class publicly
+        :rtype: INSEE
+        """
+        return self.__insee

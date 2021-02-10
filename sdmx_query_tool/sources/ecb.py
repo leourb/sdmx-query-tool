@@ -51,24 +51,28 @@ class ECB:
         return pd.DataFrame(data=output, columns=["DataFlow", "DataFlowName", "DataStructureCode"]).\
             set_index("DataFlow")
 
-    def __retrieve_data(self, data_flow, **kwargs):
+    def __retrieve_data(self, data_flow, kwargs=None):
         """
-        Retrieve the data given a combination of inputs
-        :param str data_flow: name of the dsd to get the data for
-        :param dict kwargs: accepted arguments are: start_period, end_period, last_n_observations, first_n_observations,
-        updated_after, detail, include_history. For more details on how to use these arguments visit:
-        https://sdw-wsrest.ecb.europa.eu/help/
-        :return: a DataFrame with the query result, if valid
+        Retrieve data given a data flow and some optional parameters
+        :param str data_flow: a data flow among the list of all maintained in the INSEE database
+        :param dict kwargs: optional parameters to customize the query
+        :return: a DataFrame with the requested data, if any
         :rtype: pd.DataFrame
         """
-        validated_inputs = [i for i in list(kwargs.keys()) if self.__data_shelf['inputs'].get(i)]
-        formatted_inputs = "&".join([self.__data_shelf['inputs'].get(i).format(kwargs[i]) for i in validated_inputs])
+        formatted_inputs = ""
+        if kwargs:
+            validated_inputs = [i for i in list(kwargs.keys()) if self.__data_shelf['inputs'].get(i)]
+            formatted_inputs = "&".join(
+                [self.__data_shelf['inputs'].get(i).format(kwargs[i]) for i in validated_inputs]
+                                        )
         validated_data_flow = True if data_flow.upper() in list(self.__data_flows.index) else False
         if not validated_data_flow:
             raise ValueError(f"The value needs to be included in the list of available Data Flows: "
                              f"{list(self.__data_flows.index)}")
-        url = f"{self.__data_shelf['endpoint']['protocol']}{self.__data_shelf['endpoint']['wsEntryPoint']}" \
-              f"{self.__data_shelf['endpoint']['resource']}{data_flow}?{formatted_inputs}"
+        master_url = f"{self.__data_shelf['endpoint']['protocol']}{self.__data_shelf['endpoint']['wsEntryPoint']}" \
+                     f"{self.__data_shelf['endpoint']['resource']}{data_flow}"
+        url = "?".join([master_url, formatted_inputs]) if formatted_inputs \
+            else self.__data_shelf['data'].format(data_flow)
         downloaded_data = requests.get(url).content
         results = pd.DataFrame()
         for _, dataset in eT.iterparse(BytesIO(downloaded_data)):

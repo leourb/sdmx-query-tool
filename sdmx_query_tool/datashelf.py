@@ -39,13 +39,13 @@ INSEE = {
     "data": "https://bdm.insee.fr/series/sdmx/data/{}",
     "code_list": "https://bdm.insee.fr/series/sdmx/codelist/",
     "code_list_data_flow": "https://bdm.insee.fr/series/sdmx/datastructure/FR1/{}",
+    "include_history": "https://bdm.insee.fr/series/sdmx/data/SERIES_BDM/{}?includeHistory=true",
     "inputs": {
         "start_period": "startPeriod={}",
         "end_period": "endPeriod={}",
         "last_n_observations": "lastNObservations={}",
         "first_n_observations": "firstNObservations={}",
-        "updated_after": "updatedAfter={}",
-        "include_history": "includeHistory={}"
+        "updated_after": "updatedAfter={}"
     }
 }
 

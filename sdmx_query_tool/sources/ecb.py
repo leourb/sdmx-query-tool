@@ -18,7 +18,7 @@ class ECB:
 
     def __init__(self):
         """Initialize the class"""
-        self.__data_shelf = DataShelf().oecd()
+        self.__data_shelf = DataShelf().ecb()
         self.__data_flows = self.__refresh_data_flow_list()
         self.__data = self.__retrieve_data
         self.__data_flow_cl = self.__get_code_list_for_data_flow

@@ -29,7 +29,7 @@ class OECD:
         :return: a DataFrame with the list of the available data flows
         :rtype: pd.DataFrame
         """
-        url = "https://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL"
+        url = self.__data_shelf["data_flow_list"]
         oecd_data_flows = requests.get(url).content
         output = list()
         for _, element in eT.iterparse(BytesIO(oecd_data_flows)):
@@ -136,7 +136,7 @@ class OECD:
         if data_flow not in list(self.__data_flows.index):
             raise ValueError(f"Data Flow not found in list. "
                              f"Please select one among: {list(self.__data_flows['DataFlow'])}")
-        url = f"self.__data_shelf['code_list']{data_flow}"
+        url = f"{self.__data_shelf['code_list']}{data_flow}"
         code_list_file = requests.get(url).content
         output = list()
         for _, element in eT.iterparse(BytesIO(code_list_file)):
@@ -166,7 +166,7 @@ class OECD:
 
     def retrieve_data(self):
         """
-        Call the function to retrieve data from the ECB SDMX database
+        Call the function to retrieve data from the OECD SDMX database
         :return: a DataFrame with the list of available DSD
         :rtype: function
         """

@@ -21,6 +21,8 @@ class INSEE:
         self.__data_shelf = DataShelf().insee()
         self.__data_flows = self.__refresh_data_flow_list()
         self.__data = self.__retrieve_data
+        self.__series_revisions = self.__retrieve_revisions_for_series
+        self.__all_code_lists = self.__show_whole_code_list
         # self.__data_flow_cl = self.__get_code_list_for_data_flow
 
     def __refresh_data_flow_list(self):
@@ -140,6 +142,67 @@ class INSEE:
             date = "-".join([year, date_tail, str(last_day)])
             return parse(date)
 
+    def __retrieve_revisions_for_series(self, id_bank):
+        """
+        Retrieve the revisions for a single series given an id_bank
+        :param str id_bank: an INSEE identifier unique to series
+        :return: a DataFrame with the information requested, if any
+        :rtype: pd.DataFrame
+        """
+        url = self.__data_shelf['include_history'].format(id_bank)
+        insee_download = requests.get(url).content
+        output = list()
+        series_columns = None
+        obs_columns = None
+        for _, element in eT.iterparse(BytesIO(insee_download)):
+            if element.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message}DataSet":
+                valid_from = element.attrib["validFromDate"]
+                action = element.attrib["action"]
+                for series in element:
+                    series_columns = list(series.attrib.keys())
+                    series_data = list(series.attrib.values())
+                    for obs in series:
+                        obs_columns = ["TIME_PERIOD", "OBS_VALUE", "OBS_STATUS", "OBS_QUAL", "OBS_TYPE"]
+                        obs_values = [obs.attrib[i] for i in obs_columns]
+                        obs_values = obs_values + [valid_from, action]
+                        if obs_values:
+                            output.append(series_data + obs_values)
+        results = pd.DataFrame(data=output,
+                               columns=series_columns + obs_columns + ["ValidFromDate", "Action"]).set_index("IDBANK")
+        results["TIME_PERIOD"].apply(lambda x: self.__convert_ecb_time_format_to_datetime(x))
+        return results
+
+    def __show_whole_code_list(self):
+        """
+        Show the whole code list from the INSEE
+        :return: a DataFrame with the requested information
+        :rtype: pd.DataFrame
+        """
+        url = self.__data_shelf['code_list']
+        insee_download = requests.get(url).content
+        output = list()
+        for _, element in eT.iterparse(BytesIO(insee_download)):
+            if element.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Codelists":
+                for code_list in element:
+                    code_list_id = code_list.attrib["id"]
+                    code_list_name = None
+                    code_desc = None
+                    for name in code_list:
+                        if name.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common}Name":
+                            if name.attrib and "en" in name.attrib["{http://www.w3.org/XML/1998/namespace}lang"]:
+                                code_list_name = name.text
+                        if name.tag == "{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}Code":
+                            code_id = name.attrib["id"]
+                            for sub_name in name:
+                                if sub_name.attrib and \
+                                        "en" in sub_name.attrib["{http://www.w3.org/XML/1998/namespace}lang"]:
+                                    code_desc = sub_name.text
+                            output.append([code_list_id, code_list_name, code_id, code_desc])
+        results = pd.DataFrame(data=output,
+                               columns=["CodeListID", "CodeListDescription", "CodeID", "CodeDescription"]
+                               ).set_index("CodeListID")
+        return results
+
     def show_data_flows(self):
         """
         Show Data Flows publicly
@@ -155,3 +218,19 @@ class INSEE:
         :rtype: function
         """
         return self.__data
+
+    def retrieve_series_revision(self):
+        """
+        Call the function to retrieve the revisions for a series
+        :return: a DataFrame with the parsed revisions, if any
+        :rtype: function
+        """
+        return self.__series_revisions
+
+    def get_all_code_lists(self):
+        """
+        Get all the code lists for all the data flows available in the INSEE database
+        :return: a DataFrame with all the codelists
+        :rtype: pd.DataFrame
+        """
+        self.__show_whole_code_list()

@@ -9,13 +9,6 @@ from .sources.oecd import OECD
 class SDMXQueryTool:
     """Tool to query SDMX sources"""
 
-    def __init__(self):
-        """Initialize the function with the given inputs"""
-        self.__ecb = ECB
-        self.__imf = IMF
-        self.__oecd = OECD
-        self.__insee = INSEE
-
     @staticmethod
     def get_help():
         """
@@ -31,34 +24,38 @@ class SDMXQueryTool:
         }
         return sources
 
-    def ecb(self):
+    @staticmethod
+    def ecb():
         """
         Return the ECB class publicly
         :return: the ECB class publicly
         :rtype: ECB
         """
-        return self.__ecb()
+        return ECB()
 
-    def imf(self):
+    @staticmethod
+    def imf():
         """
         Return the IMF class publicly
         :return: the IMF class publicly
         :rtype: IMF
         """
-        return self.__imf()
+        return IMF()
 
-    def oecd(self):
+    @staticmethod
+    def oecd():
         """
         Return the OECD class publicly
         :return: the OECD class publicly
         :rtype: OECD
         """
-        return self.__oecd()
+        return OECD()
 
-    def insee(self):
+    @staticmethod
+    def insee():
         """
         Return the INSEE class publicly
         :return: the INSEE class publicly
         :rtype: INSEE
         """
-        return self.__insee()
+        return INSEE()

@@ -9,6 +9,7 @@ setuptools.setup(
     author="Leonardo Urbano",
     author_email="leonardo.urbano87@libero.it",
     packages=setuptools.find_packages(),
+    package_data={'sdmx_query_tool': ['sources/*.py']},
     description="SDMX client for Python users",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -27,11 +27,26 @@ IMF = {
 OECD = {
     "data_flow_list": "https://stats.oecd.org/restsdmx/sdmx.ashx/GetDataStructure/ALL",
     "data": "http://stats.oecd.org/restsdmx/sdmx.ashx/GetData/",
+    "code_list": "http://stats.oecd.org/restsdmx/sdmx.ashx/GetSchema/",
     "inputs": {
         "start_period": "startPeriod={}",
         "end_period": "endPeriod={}"
-    },
-    "code_list": "http://stats.oecd.org/restsdmx/sdmx.ashx/GetSchema/"
+    }
+}
+
+INSEE = {
+    "data_flow_list": "https://bdm.insee.fr/series/sdmx/dataflow/FR1",
+    "data": "https://bdm.insee.fr/series/sdmx/data/{}",
+    "code_list": "https://bdm.insee.fr/series/sdmx/codelist/",
+    "code_list_data_flow": "https://bdm.insee.fr/series/sdmx/datastructure/FR1/{}",
+    "inputs": {
+        "start_period": "startPeriod={}",
+        "end_period": "endPeriod={}",
+        "last_n_observations": "lastNObservations={}",
+        "first_n_observations": "firstNObservations={}",
+        "updated_after": "updatedAfter={}",
+        "include_history": "includeHistory={}"
+    }
 }
 
 
@@ -43,6 +58,7 @@ class DataShelf:
         self.__ecb = ECB
         self.__imf = IMF
         self.__oecd = OECD
+        self.__insee = INSEE
 
     def ecb(self):
         """
@@ -67,3 +83,11 @@ class DataShelf:
         :rtype: dict
         """
         return self.__oecd
+
+    def insee(self):
+        """
+        Return the INSEE dictionary publicly
+        :return: a dictionary with the INSEE configuration
+        :rtype: dict
+        """
+        return self.__insee

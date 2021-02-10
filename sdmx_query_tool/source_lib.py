@@ -11,10 +11,10 @@ class SDMXQueryTool:
 
     def __init__(self):
         """Initialize the function with the given inputs"""
-        self.__ecb = ECB()
-        self.__imf = IMF()
-        self.__oecd = OECD()
-        self.__insee = INSEE()
+        self.__ecb = ECB
+        self.__imf = IMF
+        self.__oecd = OECD
+        self.__insee = INSEE
 
     @staticmethod
     def get_help():
@@ -37,7 +37,7 @@ class SDMXQueryTool:
         :return: the ECB class publicly
         :rtype: ECB
         """
-        return self.__ecb
+        return self.__ecb()
 
     def imf(self):
         """
@@ -45,15 +45,15 @@ class SDMXQueryTool:
         :return: the IMF class publicly
         :rtype: IMF
         """
-        return self.__imf
+        return self.__imf()
 
     def oecd(self):
         """
         Return the OECD class publicly
         :return: the OECD class publicly
-        :rtype: IMF
+        :rtype: OECD
         """
-        return self.__oecd
+        return self.__oecd()
 
     def insee(self):
         """
@@ -61,4 +61,4 @@ class SDMXQueryTool:
         :return: the INSEE class publicly
         :rtype: INSEE
         """
-        return self.__insee
+        return self.__insee()

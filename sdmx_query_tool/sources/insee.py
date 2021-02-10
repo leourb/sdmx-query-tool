@@ -7,6 +7,7 @@ import xml.etree.ElementTree as eT
 from datetime import datetime
 from dateutil.parser import parse
 from io import BytesIO
+from pprint import pprint
 
 import pandas as pd
 
@@ -23,7 +24,6 @@ class INSEE:
         self.__data = self.__retrieve_data
         self.__series_revisions = self.__retrieve_revisions_for_series
         self.__all_code_lists = self.__show_whole_code_list
-        # self.__data_flow_cl = self.__get_code_list_for_data_flow
 
     def __refresh_data_flow_list(self):
         """
@@ -202,6 +202,15 @@ class INSEE:
                                columns=["CodeListID", "CodeListDescription", "CodeID", "CodeDescription"]
                                ).set_index("CodeListID")
         return results
+
+    @staticmethod
+    def available_parameters():
+        """
+        Print the parameters available for the query
+        :return: a list with the available parameters
+        :rtype: None
+        """
+        return pprint(list(INSEE().__data_shelf['inputs'].keys()))
 
     def show_data_flows(self):
         """

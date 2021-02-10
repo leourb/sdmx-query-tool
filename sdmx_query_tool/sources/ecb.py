@@ -7,6 +7,7 @@ import xml.etree.ElementTree as eT
 from datetime import datetime
 from dateutil.parser import parse
 from io import BytesIO
+from pprint import pprint
 
 import pandas as pd
 
@@ -231,6 +232,15 @@ class ECB:
                                     columns=["CodeListID", "CodeListName", "CodeListCodeID", "CodeListCodeName"]).\
             set_index("CodeListID")
         return code_list_df
+
+    @staticmethod
+    def available_parameters():
+        """
+        Print the parameters available for the query
+        :return: a list with the available parameters
+        :rtype: None
+        """
+        return pprint(list(ECB().__data_shelf['inputs'].keys()))
 
     def show_data_flow_list(self):
         """

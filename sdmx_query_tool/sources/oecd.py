@@ -7,6 +7,7 @@ import xml.etree.ElementTree as eT
 from datetime import datetime
 from dateutil.parser import parse
 from io import BytesIO
+from pprint import pprint
 
 import pandas as pd
 
@@ -160,6 +161,15 @@ class OECD:
         results = pd.DataFrame(data=output, columns=["CodeListCode", "CodeListType", "CodeListValue",
                                                      "CodeListDescription"]).set_index("CodeListCode")
         return results
+
+    @staticmethod
+    def available_parameters():
+        """
+        Print the parameters available for the query
+        :return: a list with the available parameters
+        :rtype: None
+        """
+        return pprint(list(OECD().__data_shelf['inputs'].keys()))
 
     def show_data_flows(self):
         """
